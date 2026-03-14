@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>خدماتي - منصة الخدمات المنزلية بالمنوفية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root { --primary:#FF6B2B; --primary-dark:#e55a1e; --dark:#0D0D0D; --dark2:#1A1A1A; --dark3:#252525; --light:#F5F5F0; --card-bg:#1E1E1E; --green:#22c55e; --yellow:#f59e0b; --red:#ef4444; --blue:#3b82f6; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Cairo',sans-serif; background:var(--dark); color:var(--light); overflow-x:hidden; }
+
+  .announcement { background:linear-gradient(90deg,var(--primary),#ff9a5c,var(--primary)); background-size:200% auto; animation:shimmer 3s linear infinite; padding:10px 20px; text-align:center; font-size:0.9rem; font-weight:700; color:white; position:relative; z-index:200; }
+  .announcement a { color:white; text-decoration:underline; margin-right:8px; }
+  .ann-close { position:absolute; left:16px; top:50%; transform:translateY(-50%); background:none; border:none; color:white; font-size:1.2rem; cursor:pointer; }
+  @keyframes shimmer { to { background-position:200% center; } }
+
+  nav { position:fixed; top:0; width:100%; z-index:100; padding:16px 5%; display:flex; justify-content:space-between; align-items:center; background:rgba(13,13,13,0.92); backdrop-filter:blur(12px); border-bottom:1px solid rgba(255,107,43,0.15); transition:top 0.3s; }
+  .nav-with-banner { top:40px; }
+  .logo { font-size:1.5rem; font-weight:900; color:var(--primary); }
+  .logo span { color:var(--light); }
+  .nav-links { display:flex; gap:20px; list-style:none; }
+  .nav-links a { color:#aaa; text-decoration:none; font-weight:600; font-size:0.9rem; transition:color 0.3s; }
+  .nav-links a:hover { color:var(--primary); }
+  .nav-right { display:flex; gap:10px; align-items:center; }
+  .nav-btn { background:var(--primary); color:white; border:none; padding:10px 22px; border-radius:50px; font-family:'Cairo',sans-serif; font-weight:700; cursor:pointer; transition:0.3s; text-decoration:none; font-size:0.9rem; }
+  .nav-btn:hover { background:var(--primary-dark); transform:translateY(-2px); }
+  .admin-link { background:rgba(255,255,255,0.06); color:#aaa; border:1px solid rgba(255,255,255,0.1); padding:8px 16px; border-radius:50px; font-family:'Cairo',sans-serif; font-weight:700; font-size:0.85rem; text-decoration:none; transition:0.3s; }
+  .admin-link:hover { border-color:var(--primary); color:var(--primary); }
+
+  /* HERO */
+  .hero { min-height:100vh; display:flex; align-items:center; padding:140px 5% 80px; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:-200px; left:-200px; width:700px; height:700px; background:radial-gradient(circle,rgba(255,107,43,0.1) 0%,transparent 70%); pointer-events:none; }
+  .hero-content { max-width:600px; animation:fadeUp 0.8s ease; }
+  .hero-badge { display:inline-block; background:rgba(255,107,43,0.15); border:1px solid rgba(255,107,43,0.3); color:var(--primary); padding:6px 18px; border-radius:50px; font-size:0.85rem; font-weight:700; margin-bottom:24px; }
+  .hero h1 { font-size:clamp(2rem,5vw,3.5rem); font-weight:900; line-height:1.15; margin-bottom:20px; }
+  .hero h1 span { color:var(--primary); }
+  .hero p { color:#999; font-size:1rem; line-height:1.8; margin-bottom:40px; }
+  .hero-btns { display:flex; gap:16px; flex-wrap:wrap; }
+  .btn-primary { background:var(--primary); color:white; padding:14px 32px; border-radius:50px; font-family:'Cairo',sans-serif; font-weight:700; font-size:1rem; border:none; cursor:pointer; transition:0.3s; text-decoration:none; display:inline-block; }
+  .btn-primary:hover { background:var(--primary-dark); transform:translateY(-3px); box-shadow:0 10px 30px rgba(255,107,43,0.3); }
+  .btn-outline { background:transparent; color:var(--light); padding:14px 32px; border-radius:50px; font-family:'Cairo',sans-serif; font-weight:700; font-size:1rem; border:1px solid rgba(255,255,255,0.2); cursor:pointer; transition:0.3s; text-decoration:none; display:inline-block; }
+  .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+  .hero-stats { display:flex; gap:36px; margin-top:60px; padding-top:40px; border-top:1px solid rgba(255,255,255,0.08); }
+  .stat-num { font-size:1.8rem; font-weight:900; color:var(--primary); }
+  .stat-label { font-size:0.82rem; color:#666; margin-top:2px; }
+
+  /* SECTIONS */
+  .section { padding:90px 5%; }
+  .section.alt { background:var(--dark2); }
+  .section-header { text-align:center; margin-bottom:56px; }
+  .section-tag { display:inline-block; color:var(--primary); font-weight:700; font-size:0.82rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; }
+  .section-header h2 { font-size:clamp(1.7rem,3vw,2.6rem); font-weight:900; }
+  .section-header p { color:#777; margin-top:10px; }
+
+  /* SERVICES */
+  .services-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
+  .service-card { background:var(--card-bg); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:28px 24px; cursor:pointer; transition:0.3s; position:relative; overflow:hidden; }
+  .service-card::before { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:var(--primary); transform:scaleX(0); transition:0.3s; }
+  .service-card:hover { transform:translateY(-5px); border-color:rgba(255,107,43,0.2); }
+  .service-card:hover::before { transform:scaleX(1); }
+  .svc-icon { font-size:2.2rem; margin-bottom:12px; display:block; }
+  .service-card h3 { font-size:1rem; font-weight:700; margin-bottom:6px; }
+  .service-card p { color:#777; font-size:0.85rem; line-height:1.6; margin-bottom:14px; }
+  .price-tag { display:inline-block; background:rgba(255,107,43,0.1); border:1px solid rgba(255,107,43,0.2); color:var(--primary); padding:3px 12px; border-radius:20px; font-size:0.82rem; font-weight:700; }
+
+  /* COMPARISON TABLE */
+  .comparison-section { padding:90px 5%; background:var(--dark); }
+  .comparison-wrapper { overflow-x:auto; }
+  .comparison-table { width:100%; border-collapse:separate; border-spacing:0; border-radius:20px; overflow:hidden; }
+  .comparison-table thead tr { background:var(--dark3); }
+  .comparison-table th { padding:18px 24px; font-size:0.85rem; font-weight:700; color:#aaa; text-align:center; }
+  .comparison-table th:first-child { text-align:right; }
+  .comparison-table th.us { background:rgba(255,107,43,0.12); color:var(--primary); }
+  .comparison-table td { padding:16px 24px; border-bottom:1px solid rgba(255,255,255,0.04); background:var(--card-bg); font-size:0.9rem; text-align:center; }
+  .comparison-table td:first-child { text-align:right; font-weight:700; }
+  .comparison-table tr:last-child td { border-bottom:none; }
+  .comparison-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .old-price { color:#555; text-decoration:line-through; font-size:0.85rem; }
+  .our-price { color:var(--primary); font-weight:900; font-size:1rem; }
+  .save-badge { display:inline-block; background:rgba(34,197,94,0.12); color:var(--green); padding:2px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; margin-top:4px; }
+  .check-icon { color:var(--green); font-size:1.1rem; }
+  .cross-icon { color:#444; font-size:1.1rem; }
+  .our-col { background:rgba(255,107,43,0.04) !important; }
+
+  /* PRICING */
+  .pricing-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
+  .pricing-card { background:var(--card-bg); border:1px solid rgba(255,255,255,0.06); border-radius:22px; padding:32px 24px; text-align:center; transition:0.3s; position:relative; }
+  .pricing-card.popular { border-color:var(--primary); }
+  .popular-badge { position:absolute; top:14px; left:14px; background:var(--primary); color:white; padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+  .pricing-card:hover { transform:translateY(-5px); }
+  .p-icon { font-size:2.2rem; margin-bottom:12px; }
+  .pricing-card h3 { font-size:1.1rem; font-weight:700; margin-bottom:8px; }
+  .p-price { font-size:2.5rem; font-weight:900; color:var(--primary); margin:12px 0 4px; }
+  .p-price span { font-size:0.95rem; color:#777; font-weight:400; }
+  .p-desc { color:#777; font-size:0.85rem; margin-bottom:20px; }
+  .p-features { text-align:right; margin-bottom:24px; }
+  .p-feat { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.85rem; color:#aaa; }
+  .p-feat:last-child { border-bottom:none; }
+  .p-feat::before { content:'✓'; color:var(--green); font-weight:900; flex-shrink:0; }
+  .p-btn { width:100%; background:var(--primary); color:white; border:none; padding:13px; border-radius:10px; font-family:'Cairo',sans-serif; font-weight:700; font-size:0.95rem; cursor:pointer; transition:0.3s; }
+  .p-btn:hover { background:var(--primary-dark); }
+  .p-btn-outline { background:transparent; border:1px solid rgba(255,107,43,0.3); color:var(--primary); }
+  .p-btn-outline:hover { background:rgba(255,107,43,0.1); }
+
+  /* TEAM */
+  .team-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; }
+  .team-card { background:var(--card-bg); border:1px solid rgba(255,255,255,0.06); border-radius:18px; padding:28px 20px; text-align:center; transition:0.3s; }
+  .team-card:hover { transform:translateY(-5px); border-color:rgba(255,107,43,0.2); }
+  .team-avatar { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,var(--primary),#ff9a5c); display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 14px; }
+  .team-card h3 { font-size:1rem; font-weight:700; margin-bottom:4px; }
+  .team-role { color:var(--primary); font-size:0.82rem; font-weight:600; margin-bottom:10px; }
+  .team-desc { color:#777; font-size:0.8rem; line-height:1.6; margin-bottom:10px; }
+  .team-rating { font-size:0.82rem; color:#f59e0b; font-weight:700; }
+  .team-badge { display:inline-block; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); color:var(--green); padding:2px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; margin-top:6px; }
+
+  /* BOOKING */
+  .booking-container { max-width:720px; margin:0 auto; background:var(--card-bg); border:1px solid rgba(255,255,255,0.07); border-radius:24px; padding:44px 36px; }
+  .steps-bar { display:flex; justify-content:center; margin-bottom:36px; }
+  .step-item { display:flex; flex-direction:column; align-items:center; flex:1; position:relative; }
+  .step-item:not(:last-child)::after { content:''; position:absolute; top:17px; left:calc(-50% + 18px); right:calc(50% + 18px); height:2px; background:rgba(255,255,255,0.08); }
+  .step-item.done:not(:last-child)::after { background:var(--primary); }
+  .step-circle { width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.06); border:2px solid rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; font-size:0.82rem; font-weight:700; color:#555; z-index:1; transition:0.3s; }
+  .step-item.active .step-circle { background:var(--primary); border-color:var(--primary); color:white; }
+  .step-item.done .step-circle { background:var(--green); border-color:var(--green); color:white; }
+  .step-label { font-size:0.72rem; color:#555; margin-top:5px; font-weight:600; }
+  .step-item.active .step-label { color:var(--primary); }
+  .step-item.done .step-label { color:var(--green); }
+  .form-page { display:none; }
+  .form-page.active { display:block; animation:fadeUp 0.3s ease; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .form-group { display:flex; flex-direction:column; gap:7px; }
+  .form-group.full { grid-column:1/-1; }
+  .form-group label { font-size:0.88rem; font-weight:600; color:#aaa; }
+  .form-group input,.form-group select,.form-group textarea { background:var(--dark3); border:1px solid rgba(255,255,255,0.08); border-radius:11px; padding:13px 16px; color:var(--light); font-family:'Cairo',sans-serif; font-size:0.92rem; transition:0.3s; outline:none; }
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(255,107,43,0.1); }
+  .form-group select option { background:var(--dark3); }
+  .form-group textarea { resize:vertical; min-height:90px; }
+  .payment-methods { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin:20px 0; }
+  .pay-method { background:var(--dark3); border:2px solid rgba(255,255,255,0.08); border-radius:14px; padding:18px 12px; text-align:center; cursor:pointer; transition:0.3s; }
+  .pay-method:hover,.pay-method.selected { border-color:var(--primary); background:rgba(255,107,43,0.06); }
+  .pay-method-icon { font-size:1.8rem; margin-bottom:6px; }
+  .pay-method-name { font-size:0.85rem; font-weight:700; }
+  .pay-method-desc { font-size:0.72rem; color:#666; margin-top:3px; }
+  .pay-summary { background:var(--dark3); border-radius:14px; padding:20px; margin:18px 0; }
+  .pay-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.88rem; }
+  .pay-row:last-child { border-bottom:none; }
+  .pay-row.total { font-weight:700; font-size:0.95rem; color:var(--primary); }
+  .pay-row.advance { color:var(--green); font-weight:700; }
+  .pay-instructions { background:rgba(255,107,43,0.06); border:1px solid rgba(255,107,43,0.15); border-radius:14px; padding:20px; margin:18px 0; }
+  .pay-instructions h4 { font-size:0.95rem; font-weight:700; margin-bottom:14px; color:var(--primary); }
+  .pay-number { background:var(--dark3); border-radius:10px; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .pay-number span { font-size:1.1rem; font-weight:900; letter-spacing:2px; }
+  .copy-btn { background:var(--primary); color:white; border:none; padding:5px 14px; border-radius:7px; font-family:'Cairo',sans-serif; font-weight:700; font-size:0.78rem; cursor:pointer; }
+  .pay-note { font-size:0.82rem; color:#888; line-height:1.6; }
+  .pay-note strong { color:var(--yellow); }
+  .btn-row { display:flex; gap:12px; margin-top:24px; }
+  .form-submit { flex:1; background:var(--primary); color:white; border:none; padding:15px; border-radius:12px; font-family:'Cairo',sans-serif; font-size:1rem; font-weight:700; cursor:pointer; transition:0.3s; }
+  .form-submit:hover { background:var(--primary-dark); transform:translateY(-2px); }
+  .form-submit:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+  .form-back { background:rgba(255,255,255,0.06); color:#aaa; border:1px solid rgba(255,255,255,0.1); padding:15px 20px; border-radius:12px; font-family:'Cairo',sans-serif; font-size:0.95rem; font-weight:700; cursor:pointer; transition:0.3s; }
+  .form-back:hover { border-color:var(--primary); color:var(--primary); }
+  .success-msg { display:none; text-align:center; padding:40px 20px; }
+  .success-msg .check { font-size:3.5rem; margin-bottom:14px; }
+  .success-msg h3 { font-size:1.4rem; font-weight:700; margin-bottom:8px; }
+  .success-msg p { color:#777; margin-bottom:18px; }
+  .order-id-box { background:rgba(255,107,43,0.1); border:1px solid rgba(255,107,43,0.2); border-radius:10px; padding:12px 22px; display:inline-block; font-weight:700; color:var(--primary); font-size:1rem; }
+
+  footer { background:var(--dark2); border-top:1px solid rgba(255,255,255,0.06); padding:36px 5%; text-align:center; color:#555; font-size:0.88rem; }
+  footer span { color:var(--primary); }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @media(max-width:768px) { .nav-links{display:none} .form-grid{grid-template-columns:1fr} .payment-methods{grid-template-columns:1fr} .btn-row{flex-direction:column} .hero-stats{gap:20px} .booking-container{padding:28px 18px} }
+</style>
+</head>
+<body>
+
+<!-- ANNOUNCEMENT -->
+<div class="announcement" id="annBar">
+  🎉 عرض خاص! خصم 25% على جميع الخدمات لأول 20 عميل في المنوفية
+  <a href="#booking">احجز الآن</a>
+  <button class="ann-close" onclick="document.getElementById('annBar').style.display='none';document.getElementById('mainNav').classList.remove('nav-with-banner')">✕</button>
+</div>
+
+<nav id="mainNav" class="nav-with-banner">
+  <div class="logo">خدمات<span>ي</span></div>
+  <ul class="nav-links">
+    <li><a href="#services">الخدمات</a></li>
+    <li><a href="#compare">المقارنة</a></li>
+    <li><a href="#pricing">الأسعار</a></li>
+    <li><a href="#team">فريقنا</a></li>
+    <li><a href="#booking">احجز</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="dashboard.html" class="admin-link">⚙️ إدارة</a>
+    <a href="#booking" class="nav-btn">احجز خدمة</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">📍 نخدم محافظة المنوفية بالكامل</div>
+    <h1>خدمات منزلية <span>بأسعار أقل من السوق</span></h1>
+    <p>نفس الجودة العالية بأسعار أرخص من المنافسين — سباكة، كهرباء، تنظيف، صيانة أجهزة، وتوصيل في كل أنحاء المنوفية.</p>
+    <div class="hero-btns">
+      <a href="#booking" class="btn-primary">احجز الآن 🚀</a>
+      <a href="#compare" class="btn-outline">قارن الأسعار</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-num" id="totalOrders">+29</div><div class="stat-label">طلب مكتمل</div></div>
+      <div><div class="stat-num">+15</div><div class="stat-label">فني معتمد</div></div>
+      <div><div class="stat-num">24/7</div><div class="stat-label">خدمة متواصلة</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section alt" id="services">
+  <div class="section-header">
+    <div class="section-tag">خدماتنا</div>
+    <h2>كل ما تحتاجه في بيتك</h2>
+    <p>فنيون محترفون في المنوفية</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card" onclick="selectService('سباكة وكهرباء',120)"><span class="svc-icon">🔧</span><h3>سباكة وكهرباء</h3><p>إصلاح تسريبات المياه، مشاكل الكهرباء، تركيب الأجهزة الصحية</p><span class="price-tag">يبدأ من 120 جنيه</span></div>
+    <div class="service-card" onclick="selectService('تنظيف منازل',150)"><span class="svc-icon">🧹</span><h3>تنظيف منازل</h3><p>تنظيف شامل للشقق والفلل، السجاد والستائر وما بعد البناء</p><span class="price-tag">يبدأ من 150 جنيه</span></div>
+    <div class="service-card" onclick="selectService('صيانة أجهزة',100)"><span class="svc-icon">📱</span><h3>صيانة أجهزة</h3><p>إصلاح التكييف، الغسالة، الثلاجة، التلفزيون وجميع الأجهزة</p><span class="price-tag">يبدأ من 100 جنيه</span></div>
+    <div class="service-card" onclick="selectService('توصيل وشحن',50)"><span class="svc-icon">🚚</span><h3>توصيل وشحن</h3><p>توصيل طلبات، نقل أثاث، شحن سريع داخل المنوفية</p><span class="price-tag">يبدأ من 50 جنيه</span></div>
+    <div class="service-card" onclick="selectService('دهانات ونجارة',200)"><span class="svc-icon">🎨</span><h3>دهانات ونجارة</h3><p>دهان جدران، إصلاح أثاث، تركيب أبواب وشبابيك</p><span class="price-tag">يبدأ من 200 جنيه</span></div>
+    <div class="service-card" onclick="selectService('أمن وكاميرات',350)"><span class="svc-icon">🔒</span><h3>أمن وكاميرات</h3><p>تركيب كاميرات مراقبة، أجهزة إنذار، أنظمة التحكم</p><span class="price-tag">يبدأ من 350 جنيه</span></div>
+  </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section class="comparison-section" id="compare">
+  <div class="section-header">
+    <div class="section-tag">مقارنة الأسعار</div>
+    <h2>نحن الأرخص في السوق 💪</h2>
+    <p>قارن بنفسك — نفس الجودة بسعر أقل</p>
+  </div>
+  <div class="comparison-wrapper">
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>الخدمة</th>
+          <th>Taskty</th>
+          <th>FilKhedma</th>
+          <th>السوق المحلي</th>
+          <th class="us">⭐ خدماتي (المنوفية)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🔧 سباكة وكهرباء</td>
+          <td><span class="old-price">250 جنيه</span></td>
+          <td><span class="old-price">220 جنيه</span></td>
+          <td><span class="old-price">180 جنيه</span></td>
+          <td class="our-col"><span class="our-price">120 جنيه</span><br><span class="save-badge">وفر 60 جنيه</span></td>
+        </tr>
+        <tr>
+          <td>🧹 تنظيف منازل</td>
+          <td><span class="old-price">350 جنيه</span></td>
+          <td><span class="old-price">300 جنيه</span></td>
+          <td><span class="old-price">220 جنيه</span></td>
+          <td class="our-col"><span class="our-price">150 جنيه</span><br><span class="save-badge">وفر 70 جنيه</span></td>
+        </tr>
+        <tr>
+          <td>📱 صيانة أجهزة</td>
+          <td><span class="old-price">200 جنيه</span></td>
+          <td><span class="old-price">180 جنيه</span></td>
+          <td><span class="old-price">150 جنيه</span></td>
+          <td class="our-col"><span class="our-price">100 جنيه</span><br><span class="save-badge">وفر 50 جنيه</span></td>
+        </tr>
+        <tr>
+          <td>🚚 توصيل وشحن</td>
+          <td><span class="old-price">80 جنيه</span></td>
+          <td><span class="old-price">90 جنيه</span></td>
+          <td><span class="old-price">70 جنيه</span></td>
+          <td class="our-col"><span class="our-price">50 جنيه</span><br><span class="save-badge">وفر 20 جنيه</span></td>
+        </tr>
+        <tr>
+          <td>🎨 دهانات ونجارة</td>
+          <td><span class="old-price">400 جنيه</span></td>
+          <td><span class="old-price">380 جنيه</span></td>
+          <td><span class="old-price">300 جنيه</span></td>
+          <td class="our-col"><span class="our-price">200 جنيه</span><br><span class="save-badge">وفر 100 جنيه</span></td>
+        </tr>
+        <tr>
+          <td>🔒 أمن وكاميرات</td>
+          <td><span class="old-price">700 جنيه</span></td>
+          <td><span class="old-price">650 جنيه</span></td>
+          <td><span class="old-price">500 جنيه</span></td>
+          <td class="our-col"><span class="our-price">350 جنيه</span><br><span class="save-badge">وفر 150 جنيه</span></td>
+        </tr>
+        <tr>
+          <td>⚡ خدمة طوارئ 24/7</td>
+          <td><span class="cross-icon">✗</span></td>
+          <td><span class="cross-icon">✗</span></td>
+          <td><span class="cross-icon">✗</span></td>
+          <td class="our-col"><span class="check-icon">✓</span></td>
+        </tr>
+        <tr>
+          <td>💬 تنبيه واتساب</td>
+          <td><span class="cross-icon">✗</span></td>
+          <td><span class="cross-icon">✗</span></td>
+          <td><span class="cross-icon">✗</span></td>
+          <td class="our-col"><span class="check-icon">✓</span></td>
+        </tr>
+        <tr>
+          <td>📍 خدمة في المنوفية</td>
+          <td><span class="cross-icon">✗</span></td>
+          <td><span class="cross-icon">✗</span></td>
+          <td><span class="check-icon">✓</span></td>
+          <td class="our-col"><span class="check-icon">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="text-align:center;margin-top:32px">
+    <a href="#booking" class="btn-primary">احجز بأفضل سعر الآن 🚀</a>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section alt" id="pricing">
+  <div class="section-header">
+    <div class="section-tag">الباقات</div>
+    <h2>اختر الباقة المناسبة</h2>
+    <p>مقدم 20% فقط — الباقي عند الاستلام</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="p-icon">🔧</div><h3>الباقة الأساسية</h3>
+      <div class="p-price">99<span> جنيه</span></div>
+      <div class="p-desc">مقدم 20 جنيه فقط</div>
+      <div class="p-features">
+        <div class="p-feat">زيارة واحدة للفني</div>
+        <div class="p-feat">إصلاح مشكلة واحدة</div>
+        <div class="p-feat">ضمان أسبوع</div>
+      </div>
+      <button class="p-btn p-btn-outline" onclick="selectService('سباكة وكهرباء',99)">احجز الآن</button>
+    </div>
+    <div class="pricing-card popular">
+      <div class="popular-badge">⭐ الأكثر طلباً</div>
+      <div class="p-icon">🏠</div><h3>الباقة المميزة</h3>
+      <div class="p-price">249<span> جنيه</span></div>
+      <div class="p-desc">مقدم 50 جنيه فقط</div>
+      <div class="p-features">
+        <div class="p-feat">3 زيارات للفني</div>
+        <div class="p-feat">إصلاح غير محدود</div>
+        <div class="p-feat">ضمان شهر كامل</div>
+        <div class="p-feat">أولوية في الحجز</div>
+      </div>
+      <button class="p-btn" onclick="document.getElementById('booking').scrollIntoView({behavior:'smooth'})">احجز الآن</button>
+    </div>
+    <div class="pricing-card">
+      <div class="p-icon">🏢</div><h3>باقة الأعمال</h3>
+      <div class="p-price">499<span> /شهر</span></div>
+      <div class="p-desc">مقدم 100 جنيه فقط</div>
+      <div class="p-features">
+        <div class="p-feat">زيارات غير محدودة</div>
+        <div class="p-feat">جميع الخدمات</div>
+        <div class="p-feat">فني مخصص</div>
+        <div class="p-feat">دعم 24/7</div>
+      </div>
+      <button class="p-btn p-btn-outline" onclick="document.getElementById('booking').scrollIntoView({behavior:'smooth'})">تواصل معنا</button>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section class="section" id="team">
+  <div class="section-header">
+    <div class="section-tag">فريقنا</div>
+    <h2>فنيون معتمدون من المنوفية</h2>
+    <p>خبرة محلية + جودة عالية</p>
+  </div>
+  <div class="team-grid">
+    <div class="team-card"><div class="team-avatar">👨‍🔧</div><h3>أحمد محمود</h3><div class="team-role">سباكة وكهرباء</div><div class="team-desc">خبرة 8 سنوات — شبين الكوم</div><div class="team-rating">⭐ 4.9 (120 تقييم)</div><div class="team-badge">✓ معتمد</div></div>
+    <div class="team-card"><div class="team-avatar">👩‍💼</div><h3>سارة علي</h3><div class="team-role">تنظيف منازل</div><div class="team-desc">خبرة 5 سنوات — منوف</div><div class="team-rating">⭐ 4.8 (95 تقييم)</div><div class="team-badge">✓ معتمدة</div></div>
+    <div class="team-card"><div class="team-avatar">👨‍💻</div><h3>محمد حسن</h3><div class="team-role">صيانة أجهزة</div><div class="team-desc">خبرة 7 سنوات — تلا</div><div class="team-rating">⭐ 4.9 (200 تقييم)</div><div class="team-badge">✓ معتمد</div></div>
+    <div class="team-card"><div class="team-avatar">👨‍🎨</div><h3>كريم سامي</h3><div class="team-role">دهانات ونجارة</div><div class="team-desc">خبرة 10 سنوات — أشمون</div><div class="team-rating">⭐ 4.7 (80 تقييم)</div><div class="team-badge">✓ معتمد</div></div>
+  </div>
+</section>
+
+<!-- BOOKING -->
+<section class="section alt" id="booking">
+  <div class="section-header">
+    <div class="section-tag">احجز الآن</div>
+    <h2>اطلب خدمتك</h2>
+    <p>مقدم 20% فقط — الباقي عند الاستلام</p>
+  </div>
+  <div class="booking-container">
+    <div class="steps-bar">
+      <div class="step-item active" id="step1"><div class="step-circle">1</div><div class="step-label">بياناتك</div></div>
+      <div class="step-item" id="step2"><div class="step-circle">2</div><div class="step-label">طريقة الدفع</div></div>
+      <div class="step-item" id="step3"><div class="step-circle">3</div><div class="step-label">تأكيد الدفع</div></div>
+    </div>
+
+    <div class="form-page active" id="page1">
+      <div class="form-grid">
+        <div class="form-group"><label>الاسم الكامل *</label><input type="text" id="name" placeholder="محمد أحمد"></div>
+        <div class="form-group"><label>رقم الواتساب *</label><input type="tel" id="phone" placeholder="01xxxxxxxxx"></div>
+        <div class="form-group"><label>نوع الخدمة *</label>
+          <select id="service" onchange="updatePrice()">
+            <option value="">اختر الخدمة</option>
+            <option value="سباكة وكهرباء" data-price="120">سباكة وكهرباء — 120 جنيه</option>
+            <option value="تنظيف منازل" data-price="150">تنظيف منازل — 150 جنيه</option>
+            <option value="صيانة أجهزة" data-price="100">صيانة أجهزة — 100 جنيه</option>
+            <option value="توصيل وشحن" data-price="50">توصيل وشحن — 50 جنيه</option>
+            <option value="دهانات ونجارة" data-price="200">دهانات ونجارة — 200 جنيه</option>
+            <option value="أمن وكاميرات" data-price="350">أمن وكاميرات — 350 جنيه</option>
+          </select>
+        </div>
+        <div class="form-group"><label>الموعد المفضل</label><input type="datetime-local" id="date"></div>
+        <div class="form-group full"><label>العنوان في المنوفية *</label><input type="text" id="address" placeholder="المدينة، الشارع، رقم المبنى"></div>
+        <div class="form-group full"><label>تفاصيل إضافية</label><textarea id="details" placeholder="اكتب أي تفاصيل تساعد الفني..."></textarea></div>
+      </div>
+      <div class="btn-row">
+        <button class="form-submit" onclick="goToPayment()">التالي — اختر طريقة الدفع ←</button>
+      </div>
+    </div>
+
+    <div class="form-page" id="page2">
+      <div class="pay-summary" id="paySummary"></div>
+      <div style="font-size:0.95rem;font-weight:700;margin-bottom:14px">اختر طريقة دفع المقدم:</div>
+      <div class="payment-methods">
+        <div class="pay-method" id="pm_vodafone" onclick="selectPayMethod('vodafone')"><div class="pay-method-icon">📱</div><div class="pay-method-name">فودافون كاش</div><div class="pay-method-desc">تحويل فوري</div></div>
+        <div class="pay-method" id="pm_instapay" onclick="selectPayMethod('instapay')"><div class="pay-method-icon">💳</div><div class="pay-method-name">انستاباي</div><div class="pay-method-desc">تحويل بنكي</div></div>
+        <div class="pay-method" id="pm_cash" onclick="selectPayMethod('cash')"><div class="pay-method-icon">💵</div><div class="pay-method-name">عند الاستلام</div><div class="pay-method-desc">كاش مع الفني</div></div>
+      </div>
+      <div class="btn-row">
+        <button class="form-back" onclick="goBack(1)">← رجوع</button>
+        <button class="form-submit" onclick="goToConfirm()">التالي ←</button>
+      </div>
+    </div>
+
+    <div class="form-page" id="page3">
+      <div id="payInstructions"></div>
+      <div class="btn-row">
+        <button class="form-back" onclick="goBack(2)">← رجوع</button>
+        <button class="form-submit" id="submitBtn" onclick="submitBooking()">✓ تأكيد الحجز</button>
+      </div>
+    </div>
+
+    <div class="success-msg" id="successMsg">
+      <div class="check">✅</div>
+      <h3>تم استلام طلبك!</h3>
+      <p>سنتواصل معك على واتساب خلال 10 دقائق</p>
+      <div class="order-id-box" id="orderIdBox"></div>
+      <br><br>
+      <button class="btn-primary" onclick="resetForm()">احجز خدمة أخرى</button>
+    </div>
+  </div>
+</section>
+
+<footer><p>© 2025 <span>خدماتي</span> — خدمات منزلية في محافظة المنوفية</p></footer>
+
+<script>
+  const SUPABASE_URL = 'https://unbaoaphxbyunvqmrnjy.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_Q6uccUPkusIYhBbsxzrz3w_ZFijNQWN';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const VODAFONE_NUM = '01016295024';
+  const INSTAPAY_NUM = '01016295024';
+  const ADVANCE_PCT = 20;
+  let selectedPayMethod = '', servicePrice = 0;
+
+  function selectService(name, price) {
+    document.getElementById('service').value = name;
+    servicePrice = price;
+    document.getElementById('booking').scrollIntoView({ behavior:'smooth' });
+  }
+
+  function updatePrice() {
+    const sel = document.getElementById('service');
+    servicePrice = parseInt(sel.options[sel.selectedIndex].getAttribute('data-price')) || 0;
+  }
+
+  function setStep(n) {
+    [1,2,3].forEach(i => {
+      const el = document.getElementById('step'+i);
+      el.classList.remove('active','done');
+      if (i < n) el.classList.add('done');
+      if (i === n) el.classList.add('active');
+    });
+  }
+
+  function goToPayment() {
+    const name = document.getElementById('name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const service = document.getElementById('service').value;
+    const address = document.getElementById('address').value.trim();
+    if (!name||!phone||!service||!address) { alert('يرجى ملء جميع الحقول المطلوبة (*)'); return; }
+    updatePrice();
+    const advance = Math.ceil(servicePrice * ADVANCE_PCT / 100);
+    document.getElementById('paySummary').innerHTML = `
+      <div class="pay-row"><span>الخدمة</span><span>${service}</span></div>
+      <div class="pay-row"><span>سعر الخدمة</span><span>${servicePrice} جنيه</span></div>
+      <div class="pay-row advance"><span>المقدم (${ADVANCE_PCT}%)</span><span>${advance} جنيه</span></div>
+      <div class="pay-row"><span>الباقي عند الاستلام</span><span>${servicePrice - advance} جنيه</span></div>
+      <div class="pay-row total"><span>الإجمالي</span><span>${servicePrice} جنيه</span></div>`;
+    document.getElementById('page1').classList.remove('active');
+    document.getElementById('page2').classList.add('active');
+    setStep(2);
+  }
+
+  function selectPayMethod(m) {
+    selectedPayMethod = m;
+    ['vodafone','instapay','cash'].forEach(x => document.getElementById('pm_'+x).classList.remove('selected'));
+    document.getElementById('pm_'+m).classList.add('selected');
+  }
+
+  function goToConfirm() {
+    if (!selectedPayMethod) { alert('يرجى اختيار طريقة الدفع'); return; }
+    const advance = Math.ceil(servicePrice * ADVANCE_PCT / 100);
+    let html = '';
+    if (selectedPayMethod === 'vodafone') {
+      html = `<div class="pay-instructions"><h4>📱 فودافون كاش</h4><div class="pay-number"><span>${VODAFONE_NUM}</span><button class="copy-btn" onclick="copyNum('${VODAFONE_NUM}')">نسخ</button></div><p class="pay-note">حوّل <strong>${advance} جنيه</strong> على الرقم أعلاه ثم اضغط تأكيد الحجز.</p></div>`;
+    } else if (selectedPayMethod === 'instapay') {
+      html = `<div class="pay-instructions"><h4>💳 انستاباي</h4><div class="pay-number"><span>${INSTAPAY_NUM}</span><button class="copy-btn" onclick="copyNum('${INSTAPAY_NUM}')">نسخ</button></div><p class="pay-note">حوّل <strong>${advance} جنيه</strong> على رقم انستاباي أعلاه ثم اضغط تأكيد الحجز.</p></div>`;
+    } else {
+      html = `<div class="pay-instructions"><h4>💵 الدفع عند الاستلام</h4><p class="pay-note">سيطلب الفني <strong>${advance} جنيه مقدماً</strong> عند وصوله، والباقي <strong>${servicePrice - advance} جنيه</strong> بعد إتمام الخدمة ✅</p></div>`;
+    }
+    document.getElementById('payInstructions').innerHTML = html;
+    document.getElementById('page2').classList.remove('active');
+    document.getElementById('page3').classList.add('active');
+    setStep(3);
+  }
+
+  function goBack(to) {
+    document.getElementById('page'+(to+1)).classList.remove('active');
+    document.getElementById('page'+to).classList.add('active');
+    setStep(to);
+  }
+
+  async function submitBooking() {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'جاري الإرسال...';
+    const advance = Math.ceil(servicePrice * ADVANCE_PCT / 100);
+    const { data, error } = await sb.from('orders').insert([{
+      name: document.getElementById('name').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      service: document.getElementById('service').value,
+      date: document.getElementById('date').value,
+      address: document.getElementById('address').value.trim(),
+      details: `${document.getElementById('details').value.trim()} | دفع: ${selectedPayMethod} | مقدم: ${advance} جنيه`,
+      status: 'new'
+    }]).select();
+    if (error) { alert('حدث خطأ، حاول مرة أخرى'); btn.disabled=false; btn.textContent='✓ تأكيد الحجز'; return; }
+    ['page1','page2','page3'].forEach(p => document.getElementById(p).classList.remove('active'));
+    document.getElementById('successMsg').style.display = 'block';
+    document.getElementById('orderIdBox').textContent = 'رقم طلبك: #' + data[0].id;
+    updateCounter();
+  }
+
+  function resetForm() {
+    document.getElementById('successMsg').style.display = 'none';
+    document.getElementById('page1').classList.add('active');
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('submitBtn').textContent = '✓ تأكيد الحجز';
+    ['name','phone','date','address','details'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('service').value = '';
+    selectedPayMethod = ''; servicePrice = 0;
+    setStep(1);
+  }
+
+  function copyNum(num) { navigator.clipboard.writeText(num); alert('تم نسخ الرقم ✓'); }
+
+  async function updateCounter() {
+    const { count } = await sb.from('orders').select('*',{count:'exact',head:true}).eq('status','done');
+    document.getElementById('totalOrders').textContent = '+' + ((count||0)+29);
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const el = document.querySelector(a.getAttribute('href'));
+      if(el) el.scrollIntoView({behavior:'smooth'});
+    });
+  });
+
+  updateCounter();
+</script>
+</body>
+</html>
